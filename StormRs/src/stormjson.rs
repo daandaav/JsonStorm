@@ -22,7 +22,7 @@ pub enum JsonFi {
 }
 
 pub struct JsonSt<T> {
-	object : BTreeMap<String, JsonFile>,
+	object : BTreeMap<String, JsonFi>,
 	name : String,//what about Vec<Task> ... ?
 	number : f64,
 	boolean : bool,
