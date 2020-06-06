@@ -66,12 +66,12 @@ impl JsonSt {//do we need a careted variable?
 }
 
 pub struct Data {
-	bits : Vec<u8>,
+	bits : Vec<u64>,
 }
 
 impl Data {
 	fn throughputself(self) -> Self {
-		let self.buffer = Vec::with_capacity(c);
+		let self.bits = Vec::with_capacity(c);
 
 		let n : u64;
 

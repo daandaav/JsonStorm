@@ -22,14 +22,14 @@ pub struct Bitmap {
 	buffer : Vec<Data>,
 }
 
-impl Bitmap for Data {
+impl Bitmap {
 	fn bitmap(self) -> Self {
 		let self.buffer = Vec::with_capacity(n);
 		for _ in 0..n {
 			self.buffer.push(256)
 		}
 
-		let from_bits = u64::from_le_bytes(DataFi::throughputself(DataFi.bits));
+		let from_bits = u64::from_le_bytes(Data.bits);
 
 		let to_bits = from_bits / 8;
 
