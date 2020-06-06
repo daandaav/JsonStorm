@@ -43,6 +43,25 @@ impl Bitmap {
 	}//taken from: https://doc.rust-lang.org/std/primitive.u64.html#method.from_le_bytes
 }
 
+#[cfg(test)]
+mod tests {
+	#[test]
+	fn test_bitmapping() -> Bitmap {
+		let b = Bitmap::bitmap(self);
+		let r = b % 64;
+
+		let l = if r == 0 {
+			b
+		} else {
+			b + 64 - r
+		};
+
+		assert_eq!(match b {
+			b => r
+		}, l);
+	}
+}
+
 /*
 TODO:
 	Bitmap Index or B-Tree Index

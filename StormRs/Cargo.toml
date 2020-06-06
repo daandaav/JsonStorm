@@ -1,8 +1,16 @@
 [package]
 name = "StormRs"
 version = "0.1.0"
-authors = ["Daeghean <danis5k6@gmail.com>"]
+authors = ["Danda <sansanodaniels@gmail.com>"]
 edition = "2018"
+
+[lib]
+name = "StormRs"
+path = "src/lib.rs"
+
+[[bin]]
+name = "bin_exec"
+path = "src/bin.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

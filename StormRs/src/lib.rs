@@ -18,8 +18,4 @@ mod tests {
     fn it_works() {
         assert_eq!(1 + 0, 1);
 	}
-	/*#[test]
-	fn test_bitmapping() -> Bitmap {
-		let b = Bitmap::bitmap(self.buffer);
-	}*/
 }
