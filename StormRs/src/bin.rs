@@ -1,7 +1,10 @@
+#![forbid(unsafe_code)]
+//mods [?]
 mod lib;
-mod bitmap;
 mod stormjson;
-#[derive(Debug, PartialEq)]
+
 fn main() {
-	bitmap::Bitmap.bitmap(self : Self);
+	println!("JSON Strom: Storm (in Rust) Interceptor");
+
+	stormjson::Bitmap::test_bitmapping();
 }

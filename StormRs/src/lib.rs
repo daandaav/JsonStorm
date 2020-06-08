@@ -1,5 +1,3 @@
-#![allow(non_snake_case)]
-#![allow(unused_imports)]
 #![forbid(unsafe_code)]
 
 use std::{
@@ -13,9 +11,9 @@ use std::{
 };
 
 #[cfg(test)]
-mod tests {
+pub mod tests {
     #[test]
-    fn it_works() {
+    pub fn it_works() {
         assert_eq!(1 + 0, 1);
 	}
 }
