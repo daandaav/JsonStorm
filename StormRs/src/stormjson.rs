@@ -1,4 +1,5 @@
 #![forbid(unsafe_code)]
+#[serde(deny_unknown_fields)]
 
 use std::{
 	prelude::v1::*,
@@ -9,12 +10,19 @@ use std::{
 	f64, i64, usize, u64, u8,
 
 	option::Option,
-	result::Result,
-	fmt::{ Display, Error, Formatter },
+
+	io::{ Error, Result },
+	
+	fmt::{ Display, Formatter },
+};
+
+use serde::{
+	ser,
+	Serialize,
 };
 
 #[derive(Debug, Clone, PartialEq)]
-enum JsonEnum {
+pub enum Consts {
 	OBJECT,
 	NAME,
 	NUMBER,
@@ -25,7 +33,7 @@ enum JsonEnum {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Json {
-	object : BTreeMap<String, JsonEnum>,
+	object : BTreeMap<String, Consts>,
 	name : String,//what about Vec<Task> ... ?
 	number : f64,
 	boolean : bool,
@@ -35,7 +43,7 @@ pub struct Json {
 
 impl Json {//do we need a careted variable?
 
-	pub fn jsonobject(&self) -> &BTreeMap<String, JsonEnum> {
+	pub fn jsonobject(&self) -> &BTreeMap<String, Consts> {
 		&self.object
 	}
 
@@ -65,80 +73,85 @@ impl Json {//do we need a careted variable?
 			self.array,
 			self.null,
 		){
-			object => JsonEnum::OBJECT,
-			name => JsonEnum::NAME,
-			number => JsonEnum::NUMBER,
-			boolean => JsonEnum::BOOLEAN,
-			array => JsonEnum::ARRAY,
-			null => JsonEnum::NULL,
+			object => Consts::OBJECT,
+			name => Consts::NAME,
+			number => Consts::NUMBER,
+			boolean => Consts::BOOLEAN,
+			array => Consts::ARRAY,
+			null => Consts::NULL,
 		};
 		//pub fn init(&self) -> Self
 	}
 }
 
-pub struct Data {
-	bits : u64,
+#[derive(Serialize, Deserialize)]//#[serde(tag = "type")] can complement Java FFI-ing.
+#[serde(tag = "type")]//#[serde(untagged)] is for varying enum' properties.
+enum Message {
+    Request { id: String, method: String, params: Params },
+    Response { id: String, result: Value },
+}//https://serde.rs/enum-representations.html
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Serials {
+	object : String,
+	name : String,
+	number : f64,
+	boolean : bool,
+	array : Vec<i64>,
+	null : usize,
 }
 
-impl Data {
-	pub fn le_into(self) {
-		let b = self.bits.to_le_bytes();//n.to_littleendian_bytes()
+pub fn s_to_string<T>(value: T) -> Result<String>
+where
+T : Serialize,
+{
+	let mut s = Serials { object : String::new(), };
+
+	value.serialize(&mut s)?;
+	Ok(s.object)
+}
+
+impl<'a> ser::Serializer for &'a mut Serials {
+	type Ok = ();
+	type Error = Error;
+
+	type SerializeSeq = Self;
+	type SerializeStruct = Self;
+	type SerializeTuple = Self;
+	type SerializeMap = Self;
+
+	fn serialize_bool(self, v: bool) -> Result<()> {
+		self.object += if v { "true" } else { "false" };
+		Ok(())
 	}
-}
 
-pub struct Bitmap {
-	array : [u8; 8],
-	buffer : Vec<usize>,
-}
+	fn serialize_i64(self, v: i64) -> Result<()> {
+		self.object += &v.s_to_string();
+		Ok(())
+	}
 
-impl Bitmap {
-	fn bitmap(self) {
-		let mut n = 256u64;
-		let b = Vec::<u64>::with_capacity(n as usize);
+	fn serialize_f64(self, v: f64) -> Result<()> {
+		self.object += &v.s_to_string();
+		Ok(())
+	}
 
-		for _ in 0..n {
-			self.buffer.push(1)
+	fn serialize_str(self, v: &str) -> Result<()> {
+		self.object += "\"";
+		self.object += v;
+		self.object += "\'";
+		Ok(())
+	}
+
+	fn serialize_bytes(self, v: &[u8]) -> Result<()> {
+		use serde::ser::SerializeSeq;
+		let mut seq = self.serialize_seq(Some(v.len()))?;
+		for byte in v {
+			seq.serialize_element(byte)?;
 		}
 
-		let from_bits = u64::from_le_bytes(self.array);
-
-		let to_bits = from_bits / 8 + if from_bits % 8 > 0 { 1 } else { 0 };
+		seq.end()
 	}
-
-	fn read_le_u64(input: &mut &[u8]) -> u64 {
-		let (int_bytes, rest) = input.split_at(std::mem::size_of::<u64>());
-
-		*input = rest;
-
-		let arr : [u8; 8];
-
-		arr.into_iter();
-		u64::from_le_bytes(arr)
-	}//taken from: https://doc.rust-lang.org/std/primitive.u64.html#method.from_le_bytes
-}
-
-#[cfg(test)]
-mod tests {
-	#[test]
-	pub fn test_bitmapping() {
-		let a : [u8; 8] = [0, 1, 2, 3, 4, 5, 6, 7];
-
-		let f = u64::from_le_bytes(a);
-		
-		let t = f / 8 + if f % 8 > 0 { 1 } else { 0 };
-		let r = t % 64; 
-
-		let l = if r == 0 {
-			t
-		} else {
-			t + 64 - r
-		};
-
-		assert_eq!(match f {
-			f => r
-		}, l);
-	}
-} 
+}//https://serde.rs/impl-serializer.html
 /*
 	TOODO:
 		Need to create a iterator and mapper function.
