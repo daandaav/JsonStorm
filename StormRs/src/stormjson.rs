@@ -7,7 +7,7 @@ use std::{
 
 	collections::BTreeMap,
 
-	f64, i64, usize, u64, u8,
+	f64, i64,
 
 	option::Option,
 
@@ -38,7 +38,7 @@ pub struct Json {
 	number : f64,
 	boolean : bool,
 	array : Vec<i64>,
-	null : usize,//or None:= _
+	null : None,//or None:= _
 }
 
 impl Json {//do we need a careted variable?
@@ -61,6 +61,10 @@ impl Json {//do we need a careted variable?
 
 	pub fn jsonarray(&self) -> &Vec<i64> {
 		&self.array
+	}
+
+	pub fn jsonnull(&self) -> None {
+		&self.null
 	}
 
 	pub fn init(&self) {
@@ -89,7 +93,7 @@ impl Json {//do we need a careted variable?
 enum Message {
     Request { id: String, method: String, params: Params },
     Response { id: String, result: Value },
-}//https://serde.rs/enum-representations.html
+}//Available: https://serde.rs/enum-representations.html
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Serials {
@@ -120,28 +124,6 @@ impl<'a> ser::Serializer for &'a mut Serials {
 	type SerializeTuple = Self;
 	type SerializeMap = Self;
 
-	fn serialize_bool(self, v: bool) -> Result<()> {
-		self.object += if v { "true" } else { "false" };
-		Ok(())
-	}
-
-	fn serialize_i64(self, v: i64) -> Result<()> {
-		self.object += &v.s_to_string();
-		Ok(())
-	}
-
-	fn serialize_f64(self, v: f64) -> Result<()> {
-		self.object += &v.s_to_string();
-		Ok(())
-	}
-
-	fn serialize_str(self, v: &str) -> Result<()> {
-		self.object += "\"";
-		self.object += v;
-		self.object += "\'";
-		Ok(())
-	}
-
 	fn serialize_bytes(self, v: &[u8]) -> Result<()> {
 		use serde::ser::SerializeSeq;
 		let mut seq = self.serialize_seq(Some(v.len()))?;
@@ -151,10 +133,40 @@ impl<'a> ser::Serializer for &'a mut Serials {
 
 		seq.end()
 	}
-}//https://serde.rs/impl-serializer.html
+
+	fn serialize_str(self, v: &str) -> Result<()> {
+		self.object += "\"";
+		self.object += v;
+		self.object += "\'";
+		Ok(())
+	}
+
+	fn serialize_f64(self, v: f64) -> Result<()> {
+		self.object += &v.s_to_string();
+		Ok(())
+	}
+
+	fn serialize_bool(self, v: bool) -> Result<()> {
+		self.object += if v { "true" } else { "false" };
+		Ok(())
+	}
+
+	fn serialize_i64(self, v: i64) -> Result<()> {
+		self.object += &v.s_to_string();
+		Ok(())
+	}//TODO: Serialize into an JSON Array Data-type
+
+	fn serialize_unit(self) -> Result<()> {
+		self.object += "null";
+		Ok(())
+	}
+
+	fn serialize_none(self) -> Result<()> {
+		self.serialize_unit()
+	}
+}//Available: https://serde.rs/impl-serializer.html
 /*
-	TOODO:
-		Need to create a iterator and mapper function.
-	
-	Be able to iterate through each type value with the lifetime-variable.
+	TODO:
+	Convert the Serials implementation we have into their appropriate JSON counterparts...
+		found in the JSON structure of this same file.
 */
