@@ -98,11 +98,6 @@ enum Message {
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Serials {
 	object : String,
-	name : String,
-	number : f64,
-	boolean : bool,
-	array : Vec<i64>,
-	null : usize,
 }
 
 pub fn s_to_string<T>(value: T) -> Result<String>
@@ -120,9 +115,6 @@ impl<'a> ser::Serializer for &'a mut Serials {
 	type Error = Error;
 
 	type SerializeSeq = Self;
-	type SerializeStruct = Self;
-	type SerializeTuple = Self;
-	type SerializeMap = Self;
 
 	fn serialize_bytes(self, v: &[u8]) -> Result<()> {
 		use serde::ser::SerializeSeq;
@@ -152,7 +144,9 @@ impl<'a> ser::Serializer for &'a mut Serials {
 	}
 
 	fn serialize_i64(self, v: i64) -> Result<()> {
-		self.object += &v.s_to_string();
+		let f = Vec::from(i64); 
+		self.object += f.push(&v.s_to_string());//Hmmm...?
+		//How do we push this same value into self.object [?]
 		Ok(())
 	}//TODO: Serialize into an JSON Array Data-type
 
@@ -164,9 +158,27 @@ impl<'a> ser::Serializer for &'a mut Serials {
 	fn serialize_none(self) -> Result<()> {
 		self.serialize_unit()
 	}
+
+	fn btreemap_sequence(self, x: &str) -> Result<()> {
+		let x = match (ptr, key, val) {
+			val => BTreeMap.insert(key, val),
+			val => if val { Some(ptr) } else if None { Consts::NULL },
+		};
+
+		x
+	}
 }//Available: https://serde.rs/impl-serializer.html
 /*
 	TODO:
-	Convert the Serials implementation we have into their appropriate JSON counterparts...
-		found in the JSON structure of this same file.
+	1. PATTERN-MATCH The Serialization of the JSON Object Data-type/structure!
+	2. [Continuously] re/build JSON String(s). Program a Builder.
 */
+struct Builder {
+	item : String,
+}
+
+impl Builder {
+	fn new(&self) -> Builder { Builder { item : String::from() } }
+
+	//TODO: Build all the given JSON items...
+}
