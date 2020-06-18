@@ -5,15 +5,16 @@ use std::{
 	prelude::v1::*,
 	io::prelude::*,
 
+	boxed::Box,
 	collections::BTreeMap,
 
 	f64, i64,
 
 	option::Option,
 
+	sync::{ Arc, Mutex },
+
 	io::{ Error, Result },
-	
-	fmt::{ Display, Formatter },
 };
 
 use serde::{
@@ -168,17 +169,70 @@ impl<'a> ser::Serializer for &'a mut Serials {
 		x
 	}
 }//Available: https://serde.rs/impl-serializer.html
+
+/*
+	TODO(Parse):
+	pub struct Parser:=
+		ouput_input : String
+
+	impl Parser:
+		fn parse_out_in:
+			let string_as_integer = output_input.parse::<T>().unwrap();
+			//or
+			let string_as_integer_alternative : T = output_input.parse().unwrap();
+*/
+
+struct Parser {
+	input : String,
+}
+
+impl Parser {
+	fn parse_into_i64(&self) -> Result<()> {
+		let s = self.input.to_string();
+		let i : i64 = s.parse().unwrap();
+		
+		i
+	}
+
+	fn parse_into_f64(&self) -> Result<()> {
+		let s = self.input.to_string();
+		let f : f64 = s.parse().unwrap();
+
+		f
+	}
+
+	fn parse_into_str(&self) -> Result<()> {
+		let i : i64;
+		let f : f64;
+
+		let m = match (i, f) {
+			i => if i { self.input.to_string() },
+			f => if f { self.input.to_string() },
+		};
+
+		m
+	}
+}
+
 /*
 	TODO:
 	1. PATTERN-MATCH The Serialization of the JSON Object Data-type/structure!
 	2. [Continuously] re/build JSON String(s). Program a Builder.
+	2.1. Re/building the object Binary Tree Map (BTreeMap) recursively from a pass Rust object.
 */
 struct Builder {
-	item : String,
+	j : Arc<Json>,//js for JavaScript or JSON Structure. Your preference.
 }
 
 impl Builder {
-	fn new(&self) -> Builder { Builder { item : String::from() } }
-
+	fn new(&self, j : Rc<T>) -> Builder { Builder { js = Arc::new(T) } }
 	//TODO: Build all the given JSON items...
+	//-And...! How can we pass the Json struct into this; in utilizing the BTreeMap module?
+	fn build<T>(&self, j : Arc<T>) {
+		let r = Arc::new();
+
+		let op = match j {
+			//...
+		};
+	}
 }
