@@ -221,15 +221,24 @@ impl Parser {
 	2.1. Re/building the object Binary Tree Map (BTreeMap) recursively from a pass Rust object.
 */
 struct Builder {
-	j : Arc<Json>,//js for JavaScript or JSON Structure. Your preference.
+	j : Arc<Mutex<Json>>,//js for JavaScript or JSON Structure. Your preference.
 }
-
+//TODO(Option<'a>): Need to use the Option library and also track the lifetime of: 'a
 impl Builder {
-	fn new(&self, j : Rc<T>) -> Builder { Builder { js = Arc::new(T) } }
+	fn new(&self, j : Arc<Mutex<Json>>) -> Builder { Builder { js = Arc::new(Mutex::new(Json)) } }
 	//TODO: Build all the given JSON items...
 	//-And...! How can we pass the Json struct into this; in utilizing the BTreeMap module?
-	fn build<T>(&self, j : Arc<T>) {
-		let r = Arc::new();
+	fn build<T>(&self, j : Arc<Mutex<Json>>) {
+		let c = Arc::new(Mutex::new(Json {
+			object : BTreeMap::new(),
+			name : String::new(),//what about Vec<Task> ... ?
+			number : f64::to_le_bytes,
+			boolean : false,
+			array : Vec::new(),
+			null : None,//or None:= _
+		}));
+
+		let json_clone = Json.clone();
 
 		let op = match j {
 			//...
