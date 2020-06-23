@@ -238,10 +238,12 @@ impl Builder {
 			null : None,//or None:= _
 		}));
 
-		let json_clone = Json.clone();
+		let clone = c.clone();
 
-		let op = match j {
-			//...
-		};
+		std::thread::spawn(move || {
+			let op = match j {
+				//Within each thread and pool we have a JSON structure re/building
+			};
+		})
 	}
 }
