@@ -10,6 +10,10 @@ use std::{
 
 	f64, i64,
 
+	thread,
+
+	time::Duration,
+
 	option::Option,
 
 	sync::{ Arc, Mutex },
@@ -89,6 +93,53 @@ impl Json {//do we need a careted variable?
 	}
 }
 
+/*
+	TODO(Parse):
+	pub struct Parser:=
+		ouput_input : String
+
+	impl Parser:
+		fn parse_out_in:
+			let string_as_integer = output_input.parse::<T>().unwrap();
+			//or
+			let string_as_integer_alternative : T = output_input.parse().unwrap();
+*/
+
+struct Parser {
+	input : String,
+}
+
+impl Parser {
+	type Parse<String, Output> = Result<(String, Output), String>;
+	// Available: https://bodil.lol/parser-combinators/
+
+	fn parse_into_i64(&self) -> Result<(&str, ()), &str> {
+		let s = self.input.to_string();
+		let i : i64 = s.parse().unwrap();
+		
+		i
+	}
+
+	fn parse_into_f64(&self) -> Result<()> {
+		let s = self.input.to_string();
+		let f : f64 = s.parse().unwrap();
+
+		f
+	}
+
+	fn parse_into_str(&self) -> Result<()> {
+		let i : i64;
+		let f : f64;
+
+		let m = match (i, f) {
+			i => if i { self.input.to_string() },
+			f => if f { self.input.to_string() },
+		};
+
+		m
+	}
+}
+
 #[derive(Serialize, Deserialize)]//#[serde(tag = "type")] can complement Java FFI-ing.
 #[serde(tag = "type")]//#[serde(untagged)] is for varying enum' properties.
 enum Message {
@@ -101,21 +152,21 @@ pub struct Serials {
 	object : String,
 }
 
-pub fn s_to_string<T>(value: T) -> Result<String>
-where
-T : Serialize,
-{
-	let mut s = Serials { object : String::new(), };
-
-	value.serialize(&mut s)?;
-	Ok(s.object)
-}
-
 impl<'a> ser::Serializer for &'a mut Serials {
 	type Ok = ();
 	type Error = Error;
 
 	type SerializeSeq = Self;
+
+	fn s_to_string<T>(value: T) -> Result<String>
+	where
+		T : Serialize,
+	{
+		let mut s = Serials { object : String::new(), };
+
+		value.serialize(&mut s)?;
+		Ok(s.object)
+	}
 
 	fn serialize_bytes(self, v: &[u8]) -> Result<()> {
 		use serde::ser::SerializeSeq;
@@ -171,50 +222,6 @@ impl<'a> ser::Serializer for &'a mut Serials {
 }//Available: https://serde.rs/impl-serializer.html
 
 /*
-	TODO(Parse):
-	pub struct Parser:=
-		ouput_input : String
-
-	impl Parser:
-		fn parse_out_in:
-			let string_as_integer = output_input.parse::<T>().unwrap();
-			//or
-			let string_as_integer_alternative : T = output_input.parse().unwrap();
-*/
-
-struct Parser {
-	input : String,
-}
-
-impl Parser {
-	fn parse_into_i64(&self) -> Result<()> {
-		let s = self.input.to_string();
-		let i : i64 = s.parse().unwrap();
-		
-		i
-	}
-
-	fn parse_into_f64(&self) -> Result<()> {
-		let s = self.input.to_string();
-		let f : f64 = s.parse().unwrap();
-
-		f
-	}
-
-	fn parse_into_str(&self) -> Result<()> {
-		let i : i64;
-		let f : f64;
-
-		let m = match (i, f) {
-			i => if i { self.input.to_string() },
-			f => if f { self.input.to_string() },
-		};
-
-		m
-	}
-}
-
-/*
 	TODO:
 	1. PATTERN-MATCH The Serialization of the JSON Object Data-type/structure!
 	2. [Continuously] re/build JSON String(s). Program a Builder.
@@ -224,12 +231,14 @@ struct Builder {
 	j : Arc<Mutex<Json>>,//js for JavaScript or JSON Structure. Your preference.
 }
 //TODO(Option<'a>): Need to use the Option library and also track the lifetime of: 'a
+
 impl Builder {
-	fn new(&self, j : Arc<Mutex<Json>>) -> Builder { Builder { js = Arc::new(Mutex::new(Json)) } }
+
+	fn new(&self, j : Arc<Mutex<Json>>) -> Self { Builder { js = Arc::new(Mutex::new(Json)) } }
 	//TODO: Build all the given JSON items...
 	//-And...! How can we pass the Json struct into this; in utilizing the BTreeMap module?
-	fn build<T>(&self, j : Arc<Mutex<Json>>) {
-		let c = Arc::new(Mutex::new(Json {
+	fn build<T>(&self, j : Arc<Mutex<Json>>) -> Result<()> {
+		let js = Arc::new(Mutex::new(Json {
 			object : BTreeMap::new(),
 			name : String::new(),//what about Vec<Task> ... ?
 			number : f64::to_le_bytes,
@@ -238,12 +247,23 @@ impl Builder {
 			null : None,//or None:= _
 		}));
 
-		let clone = c.clone();
+		let duration : Duration;
 
-		std::thread::spawn(move || {
-			let op = match j {
-				//Within each thread and pool we have a JSON structure re/building
+		let clone = js.clone();
+
+		let ts = std::thread::spawn(move |i| {
+			thread::sleep(duration);
+
+			let clone_copy = clone.lock().unwrap();
+
+			let op = match (i, j) {
+				//TODO: ...
+				//... Within each thread and pool we have a cloned JSON structure ...
+				//... re/building
+				
 			};
-		})
+		});
+
+		ts
 	}
 }
