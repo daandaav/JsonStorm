@@ -27,9 +27,17 @@ enum Specification {
 type Parser<'a, X> = Result<(&'a str, X)>;
 
 trait ParseTemplateResult<'a, Output> {
-	fn parse<'a, X>(&self, input : &'a str) -> Parser<'a, X>;
-	fn transpose<P, F, X, Y>(par : P, map_fn : F) -> Parser<'a, Y>; // Map - Assignment for Parse, Fn into X and Y variables
-	fn predicate<'a, P, X, F>(par : P, pre : F);
+	fn parse<'a, X>(&self, input : &'a str) -> Parser<'a, X> {}
+	fn transpose<P, F, X, Y>(par : P, map_fn : F) -> Parser<'a, Y> {} // Map - Assignment for Parse, Fn into X and Y variables
+
+	fn predicate<'a, P, X, F>(par : P, pre : F) {}
+	fn any_char(input : &str) -> Result<()> {}
+
+	fn is_whitespace(input : &str) -> Result<()> {}
+	fn if_whitespace<'a>() -> Parser<'a, char> {}
+	
+	fn zero_or_more_chars<'a, P, X>(par : P) {}
+	fn zero_or_more_spaces<'a>() {}
 }
 
 impl ParseTemplateResult {
