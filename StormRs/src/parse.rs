@@ -11,22 +11,41 @@ use std::{
 };
 
 #[derive(Debug, Clone, PartialEq)]
-enum Specification {
+enum Specs {
 	Datatypes {
 		name : String,
 		number : f64,
 		array : Vec<i64>,
 		attribute : Vec<String>,
 		boolean : bool,
-		object : BTreeMap<String, Specification>
+		object : BTreeMap<String, Specs>
 	},
 
 	null,
 }
 
+struct StringStream {
+	input : String
+}
+
+impl StringStream {
+	fn single_quote(self, x : &'a str) -> Result<()> {
+		self.input += "\'";
+		self.input += x;
+		self.input += "\'";
+	}
+
+	fn double_quote(self, x: &'a str) -> Result<()> {
+		self.input += "\"";
+		self.input += x;
+		self.input += "\"";
+		Ok(())
+	}
+}
+
 type Parser<'a, X> = Result<(&'a str, X)>;
 
-trait ParseTemplateResult<'a, Output> {
+trait Parsing<'a, Output> {
 	fn parse<'a, X>(&self, input : &'a str) -> Parser<'a, X> {}
 	fn transpose<P, F, X, Y>(par : P, map_fn : F) -> Parser<'a, Y> {} // Map - Assignment for Parse, Fn into X and Y variables
 
@@ -40,20 +59,31 @@ trait ParseTemplateResult<'a, Output> {
 	fn zero_or_more_spaces<'a>() {}
 }
 
-impl ParseTemplateResult {
+impl Parsing {
 	fn parse<'a, X>(&self, input : &'a str) -> Parser<'a, X> {
-
+		move |input| match input {
+			Some(x) if x == expected => { Ok((&input[expected.len()..], () )) }
+		
+			_ => Err(input)
+		}
 	}
 
-	fn transpose<P, F, X, Y>(par : P, map_fn : F) -> Parser<'a, Y> {
-
+	fn transpose<P, F, X, Y>(par : P, map_fn : F)
+		-> Fn(&str)
+		where
+			P : Fn(&str) -> Result<(&str, X)>,
+			F : Fn(X) -> Y
+	{
+		move |input| parse(input)
+								.map(|(next, res)|
+												(next, map_fn(res)))
 	}
 
 	fn predicate<'a, P, X, F>(par : P, pre : F)
 		-> impl Parser<'a, X>
-			where
-				P : Parser<'a, X>,
-				F : Fn(&X) -> bool
+		where
+			P : Parser<'a, X>,
+			F : Fn(&X) -> bool
 	{
 		move |input| { if let Ok((next, value)) = parse(input) {
 			if pre(&value) { return Ok((next, value)); }
@@ -99,8 +129,8 @@ impl ParseTemplateResult {
 
 	fn zero_or_more_chars<'a, P, X>(par : P)
 		-> impl Parser<'a, Vec<X>>
-			where
-				P : Parser<'a, X>
+		where
+			P : Parser<'a, X>
 	{
 		move |mut input| {
 			let mut res = Vec::new();
