@@ -105,7 +105,7 @@ impl ParseTemplateResult {
 		move |mut input| {
 			let mut res = Vec::new();
 
-			for x in 0.. || 1.. {
+			for x in 0.. 1.. {
 
 				if let Ok((next_input, next_char)) = parse(input) { input = next_input; res.push(nex_char); }
 				else { return Err(input); }
