@@ -45,6 +45,16 @@ impl StringStream {
 
 type Parser<'a, X> = Result<(&'a str, X)>;
 
+trait Parsed<'a, X> {
+	fn parse(&self, input : &'a str) -> Parser<'a, X>;
+}
+
+impl<'a, F, X> Parsed<'a, X> for F
+where F : Fn(&'a str) -> Parser<X>
+{
+	fn parse(&self, input : &'a str) -> Parser<'a, X> { self(input) }
+}
+
 trait Parsing<'a, Output> {
 	fn parse<'a, X>(&self, input : &'a str) -> Parser<'a, X> {}
 	fn transpose<P, F, X, Y>(par : P, map_fn : F) -> Parser<'a, Y> {} // Map - Assignment for Parse, Fn into X and Y variables
@@ -60,32 +70,13 @@ trait Parsing<'a, Output> {
 }
 
 impl Parsing {
-	fn parse<'a, X>(&self, input : &'a str) -> Parser<'a, X> {
-		move |input| match input {
-			Some(x) if x == expected => { Ok((&input[expected.len()..], () )) }
-		
-			_ => Err(input)
-		}
-	}
-
-	fn transpose<P, F, X, Y>(par : P, map_fn : F)
-		-> Fn(&str)
-		where
-			P : Fn(&str) -> Result<(&str, X)>,
-			F : Fn(X) -> Y
-	{
-		move |input| parse(input)
-								.map(|(next, res)|
-												(next, map_fn(res)))
-	}
-
 	fn predicate<'a, P, X, F>(par : P, pre : F)
 		-> impl Parser<'a, X>
 		where
 			P : Parser<'a, X>,
 			F : Fn(&X) -> bool
 	{
-		move |input| { if let Ok((next, value)) = parse(input) {
+		move |input| { if let Ok((next, value)) = Parsed::parse(input) {
 			if pre(&value) { return Ok((next, value)); }
 			}
 		};
@@ -137,7 +128,7 @@ impl Parsing {
 
 			for x in 0.. 1.. {
 
-				if let Ok((next_input, next_char)) = parse(input) { input = next_input; res.push(nex_char); }
+				if let Ok((next_input, next_char)) = Parsed::parse(input) { input = next_input; res.push(nex_char); }
 				else { return Err(input); }
 			}
 
