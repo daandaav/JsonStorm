@@ -105,7 +105,7 @@ impl ParseTemplateResult {
 		move |mut input| {
 			let mut res = Vec::new();
 
-			while input[0..] {
+			for x in 0.. || 1.. {
 
 				if let Ok((next_input, next_char)) = parse(input) { input = next_input; res.push(nex_char); }
 				else { return Err(input); }
@@ -117,5 +117,7 @@ impl ParseTemplateResult {
 
 	fn zero_or_more_spaces<'a>() -> impl Parser<'a, Vec<char>> {
 		zero_or_more_chars(if_whitespace())
-	}
+	} // [*]...you could write a combinator that takes a RangeBound
+	// in addition to a parser and repeats it according to a range: range(0..) for zero_or_more, range(1..) for one_or_more,
+	// range(5..=6) for exactly five or six, wherever your heart takes you.
 } // Available: https://bodil.lol/parser-combinators/
