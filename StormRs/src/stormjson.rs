@@ -27,73 +27,14 @@ use serde::{
 };
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum SPECS {
-	OBJECT,
-	NAME,
-	NUMBER,
-	BOOLEAN,
-	ARRAY,
+pub enum JSON {
+	OBJECT(BTreeMap<String, JSON>),
+	NAME(String),
+	NUMBER(f64),
+	BOOLEAN(bool),
+	ARRAY(Vec<i64>),
 	NULL,
 }
-
-#[derive(Debug, Clone, PartialEq)]
-pub struct Json {
-	object : BTreeMap<String, SPECS>,
-	name : String,//what about Vec<Task> ... ?
-	number : f64,
-	boolean : bool,
-	array : Vec<i64>,
-	null : None,//or None:= _
-}
-
-impl Json {//do we need a careted variable?
-
-	pub fn jsonobject(&self) -> &BTreeMap<String, SPECS> {
-		&self.object
-	}
-
-	pub fn jsonstring(&self) -> &String {
-		&self.name
-	}
-
-	pub fn jsonnumber(&self) -> &f64 {
-		&self.number
-	}
-
-	pub fn jsonbool(&self) -> &bool {
-		&self.boolean
-	}
-
-	pub fn jsonarray(&self) -> &Vec<i64> {
-		&self.array
-	}
-
-	pub fn jsonnull(&self) -> None {
-		&self.null
-	}
-
-	pub fn intro(&self) -> Result<(String, Self), String> {
-		//TODO: JsonSt into JsonFi into DataFi
-		let js = match (
-			self.object,
-			self.name,
-			self.number,
-			self.boolean,
-			self.array,
-			self.null,
-		){
-			object => SPECS::OBJECT,
-			name => SPECS::NAME,
-			number => SPECS::NUMBER,
-			boolean => SPECS::BOOLEAN,
-			array => SPECS::ARRAY,
-			null => SPECS::NULL,
-		};
-		//pub fn intro(&self) -> Result<(String, Self), String>
-		js
-	}
-}
-
 /*
 	TODO(Parse):
 	pub struct Parser:=
@@ -215,7 +156,7 @@ impl<'a> ser::Serializer for &'a mut Serials {
 	fn btreemap_sequence(self, x: &str) -> Result<()> {
 		let x = match (ptr, key, val) {
 			val => BTreeMap.insert(key, val),
-			val => if val { Some(ptr) } else if None { SPECS::NULL },
+			val => if val { Some(ptr) } else if None { JSON::NULL },
 		};
 
 		x
@@ -229,23 +170,23 @@ impl<'a> ser::Serializer for &'a mut Serials {
 	2.1. Re/building the object Binary Tree Map (BTreeMap) recursively from a pass Rust object.
 */
 struct Rebuilder {
-	j : Arc<Mutex<Json>>,//js for JavaScript or JSON Structure. Your preference.
+	js : Arc<Mutex<JSON>>,//js for JavaScript or JSON Structure. Your preference.
 }
 //TODO(Option<'a>): Need to use the Option library and also track the lifetime of: 'a
 
 impl Rebuilder {
 
-	fn new(&self, j : Arc<Mutex<Json>>) -> Self {
+	fn new(&self, js : Arc<Mutex<JSON>>) -> Self {
 		let bui = Builder {
-			js = Arc::new(Mutex::new(Json))
+			j = Arc::new(Mutex::new(JSON))
 		};
 
 		bui
 	}
 	//TODO: Build all the given JSON items...
-	//-And...! How can we pass the Json struct into this; in utilizing the BTreeMap module?
-	fn build<T>(&self, j : Arc<Mutex<Json>>) -> Result<()> {
-		let js = Arc::new(Mutex::new(Json {
+	//-And...! How can we pass the JSON struct into this; in utilizing the BTreeMap module?
+	fn build<T>(&self, js : Arc<Mutex<JSON>>) -> Result<()> {
+		let j = Arc::new(Mutex::new(JSON {
 			object : BTreeMap::new(),
 			name : String::new(),//what about Vec<Task> ... ?
 			number : f64::to_le_bytes,
@@ -256,7 +197,7 @@ impl Rebuilder {
 
 		let duration : Duration;
 
-		let clone = js.clone();
+		let clone = j.clone();
 
 		let ts = std::thread::spawn(move |i| {
 			thread::sleep(duration);
@@ -270,7 +211,7 @@ impl Rebuilder {
 					//TODO: ...
 					//... Within each thread and pool we have a cloned JSON structure ...
 					//... re/building
-					Some(i, c) if i { c : String::new() } => SPECS::OBJECT,
+					Some(i, c) if i { c : String::new() } => JSON::OBJECT,
 					_ => None
 				};
 			};
