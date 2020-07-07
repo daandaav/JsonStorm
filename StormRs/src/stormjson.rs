@@ -27,7 +27,7 @@ use serde::{
 };
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum Consts {
+pub enum SPECS {
 	OBJECT,
 	NAME,
 	NUMBER,
@@ -38,7 +38,7 @@ pub enum Consts {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct Json {
-	object : BTreeMap<String, Consts>,
+	object : BTreeMap<String, SPECS>,
 	name : String,//what about Vec<Task> ... ?
 	number : f64,
 	boolean : bool,
@@ -48,7 +48,7 @@ pub struct Json {
 
 impl Json {//do we need a careted variable?
 
-	pub fn jsonobject(&self) -> &BTreeMap<String, Consts> {
+	pub fn jsonobject(&self) -> &BTreeMap<String, SPECS> {
 		&self.object
 	}
 
@@ -72,9 +72,9 @@ impl Json {//do we need a careted variable?
 		&self.null
 	}
 
-	pub fn init(&self) {
+	pub fn intro(&self) -> Result<(String, Self), String> {
 		//TODO: JsonSt into JsonFi into DataFi
-		let json_data = match (
+		let js = match (
 			self.object,
 			self.name,
 			self.number,
@@ -82,14 +82,15 @@ impl Json {//do we need a careted variable?
 			self.array,
 			self.null,
 		){
-			object => Consts::OBJECT,
-			name => Consts::NAME,
-			number => Consts::NUMBER,
-			boolean => Consts::BOOLEAN,
-			array => Consts::ARRAY,
-			null => Consts::NULL,
+			object => SPECS::OBJECT,
+			name => SPECS::NAME,
+			number => SPECS::NUMBER,
+			boolean => SPECS::BOOLEAN,
+			array => SPECS::ARRAY,
+			null => SPECS::NULL,
 		};
-		//pub fn init(&self) -> Self
+		//pub fn intro(&self) -> Result<(String, Self), String>
+		js
 	}
 }
 
@@ -181,7 +182,7 @@ impl<'a> ser::Serializer for &'a mut Serials {
 	fn serialize_str(self, v: &str) -> Result<()> {
 		self.object += "\"";
 		self.object += v;
-		self.object += "\'";
+		self.object += "\"";
 		Ok(())
 	}
 
@@ -214,7 +215,7 @@ impl<'a> ser::Serializer for &'a mut Serials {
 	fn btreemap_sequence(self, x: &str) -> Result<()> {
 		let x = match (ptr, key, val) {
 			val => BTreeMap.insert(key, val),
-			val => if val { Some(ptr) } else if None { Consts::NULL },
+			val => if val { Some(ptr) } else if None { SPECS::NULL },
 		};
 
 		x
@@ -227,14 +228,20 @@ impl<'a> ser::Serializer for &'a mut Serials {
 	2. [Continuously] re/build JSON String(s). Program a Builder.
 	2.1. Re/building the object Binary Tree Map (BTreeMap) recursively from a pass Rust object.
 */
-struct Builder {
+struct Rebuilder {
 	j : Arc<Mutex<Json>>,//js for JavaScript or JSON Structure. Your preference.
 }
 //TODO(Option<'a>): Need to use the Option library and also track the lifetime of: 'a
 
-impl Builder {
+impl Rebuilder {
 
-	fn new(&self, j : Arc<Mutex<Json>>) -> Self { Builder { js = Arc::new(Mutex::new(Json)) } }
+	fn new(&self, j : Arc<Mutex<Json>>) -> Self {
+		let bui = Builder {
+			js = Arc::new(Mutex::new(Json))
+		};
+
+		bui
+	}
 	//TODO: Build all the given JSON items...
 	//-And...! How can we pass the Json struct into this; in utilizing the BTreeMap module?
 	fn build<T>(&self, j : Arc<Mutex<Json>>) -> Result<()> {
@@ -256,12 +263,21 @@ impl Builder {
 
 			let clone_copy = clone.lock().unwrap();
 
-			let op = match (i, j) {
-				//TODO: ...
-				//... Within each thread and pool we have a cloned JSON structure ...
-				//... re/building
+			let lo = loop {
+				let c = clone_copy;
 				
+				let op = match (i, c) {
+					//TODO: ...
+					//... Within each thread and pool we have a cloned JSON structure ...
+					//... re/building
+					Some(i, c) if i { c : String::new() } => SPECS::OBJECT,
+					_ => None
+				};
 			};
+
+			if lo > 2 { Ok(()) } else if l > 4 { Err(); break }
+
+			lo
 		});
 
 		ts
