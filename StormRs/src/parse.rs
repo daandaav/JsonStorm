@@ -43,7 +43,7 @@ impl StringStream {
 	}
 }
 
-type Parser<'a, X> = Result<(&'a str, X)>;
+type Parser<'a, X> = Result<&'a str, X>;
 
 trait Parsed<'a, X> {
 	fn parse(&self, input : &'a str) -> Parser<'a, X>;
