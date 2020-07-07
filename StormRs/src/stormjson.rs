@@ -35,27 +35,15 @@ pub enum JSON {
 	ARRAY(Vec<i64>),
 	NULL,
 }
-/*
-	TODO(Parse):
-	pub struct Parser:=
-		ouput_input : String
 
-	impl Parser:
-		fn parse_out_in:
-			let string_as_integer = output_input.parse::<T>().unwrap();
-			//or
-			let string_as_integer_alternative : T = output_input.parse().unwrap();
-*/
-
-struct Parser {
+struct Parsing {
 	input : String,
 }
 
-impl Parser {
-	type Parse<String, Output> = Result<(String, Output), String>;
+impl Parsing {
 	// Available: https://bodil.lol/parser-combinators/
 
-	fn parse_into_i64(&self) -> Result<(&str, ()), &str> {
+	fn parse_into_i64(&self) -> Result<(&'a str, Output), &'a str> {
 		let s = self.input.to_string();
 		let i : i64 = s.parse().unwrap();
 		
@@ -100,7 +88,7 @@ impl<'a> ser::Serializer for &'a mut Serials {
 
 	type SerializeSeq = Self;
 
-	fn s_to_string<T>(value: T) -> Result<String>
+	fn s_to_string<T>(value: T) -> Result<(String)>
 	where
 		T : Serialize,
 	{
