@@ -43,19 +43,20 @@ impl StringStream {
 	}
 }
 
-type Parser<'a, X> = Result<&'a str, X>;
-
-trait Parsed<'a, X> {
+trait Parser<'a, X> {
 	fn parse(&self, input : &'a str) -> Parser<'a, X>;
 }
 
-impl<'a, F, X> Parsed<'a, X> for F
-where F : Fn(&'a str) -> Parser<X>
+impl<'a, F, X> Parser<'a, X> for F
+where F : Fn(&'a str)
 {
 	fn parse(&self, input : &'a str) -> Parser<'a, X> { self(input) }
 }
 
 trait Parsing<'a, Output> {
+
+	pub struct Parsing<Self> { input : String<Self> }
+
 	fn parse<'a, X>(&self, input : &'a str) -> Parser<'a, X> {}
 	fn transpose<P, F, X, Y>(par : P, map_fn : F) -> Parser<'a, Y> {} // Map - Assignment for Parse, Fn into X and Y variables
 
@@ -70,7 +71,8 @@ trait Parsing<'a, Output> {
 }
 
 impl Parsing {
-	fn predicate<'a, P, X, F>(par : P, pre : F)
+	
+	pub fn predicate<'a, P, X, F>(par : P, pre : F)
 		-> impl Parser<'a, X>
 		where
 			P : Parser<'a, X>,
@@ -84,19 +86,19 @@ impl Parsing {
 		Err(input)
 	}
 
-	fn any_char(input : &str) -> Result<()> {
+	pub fn any_char(input : &str) -> Result<()> {
 		match input.chars().next() {
 			Some(next_input) => Ok((&input[next_input.len_utf8()..], next_input)),
 			_ => Err(input),
 		}
 	}
 
-	fn is_whitespace(input : &str) -> Result<()> {
+	pub fn is_whitespace(input : &str) -> Result<()> {
 		let matching = String::new();
 		let mut characters = input.chars();
 
 		match characters.next() {
-			Some(next_input) if next_input.is_alphabetic() => matching.push(next),
+			Some(next_input) if next_input.is_alphabetic() => matching.push(next_input),
 			_ => return Err(input),
 		}
 
@@ -112,13 +114,13 @@ impl Parsing {
 		Ok((&input[next_character..], matching))
 	}
 
-	fn if_whitespace<'a>()
+	pub fn if_whitespace<'a>()
 		-> Parser<'a, char>
 	{
 		predicate(any_char, |c| c.is_whitespace())
 	}
 
-	fn zero_or_more_chars<'a, P, X>(par : P)
+	pub fn zero_or_more_chars<'a, P, X>(par : P)
 		-> impl Parser<'a, Vec<X>>
 		where
 			P : Parser<'a, X>
@@ -126,7 +128,7 @@ impl Parsing {
 		move |mut input| {
 			let mut res = Vec::new();
 
-			for x in 0.. 1.. {
+			for x in 0.. || 1.. {
 
 				if let Ok((next_input, next_char)) = Parsed::parse(input) { input = next_input; res.push(nex_char); }
 				else { return Err(input); }
@@ -136,9 +138,36 @@ impl Parsing {
 		}
 	}
 
-	fn zero_or_more_spaces<'a>() -> impl Parser<'a, Vec<char>> {
+	pub fn zero_or_more_spaces<'a>() -> impl Parser<'a, Vec<char>> {
 		zero_or_more_chars(if_whitespace())
 	} // [*]...you could write a combinator that takes a RangeBound
 	// in addition to a parser and repeats it according to a range: range(0..) for zero_or_more, range(1..) for one_or_more,
 	// range(5..=6) for exactly five or six, wherever your heart takes you.
+
+	pub fn parse_into_i64(&self) -> Result<(&'a str, Output), &'a str> {
+		let s = self.input.to_string();
+		let i : i64 = s.parse().unwrap();
+		
+		i
+	}
+
+	pub fn parse_into_f64(&self) -> Result<()> {
+		let s = self.input.to_string();
+		let f : f64 = s.parse().unwrap();
+
+		f
+	}
+
+	pub fn parse_into_str(&self) -> Result<()> {
+		let i : i64;
+		let f : f64;
+
+		let m = match (i, f) {
+			i => if i { self.input.to_string() },
+			f => if f { self.input.to_string() },
+		};
+
+		m
+	}
+
 } // Available: https://bodil.lol/parser-combinators/

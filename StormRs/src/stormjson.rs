@@ -41,33 +41,7 @@ struct Parsing {
 }
 
 impl Parsing {
-	// Available: https://bodil.lol/parser-combinators/
 
-	fn parse_into_i64(&self) -> Result<(&'a str, Output), &'a str> {
-		let s = self.input.to_string();
-		let i : i64 = s.parse().unwrap();
-		
-		i
-	}
-
-	fn parse_into_f64(&self) -> Result<()> {
-		let s = self.input.to_string();
-		let f : f64 = s.parse().unwrap();
-
-		f
-	}
-
-	fn parse_into_str(&self) -> Result<()> {
-		let i : i64;
-		let f : f64;
-
-		let m = match (i, f) {
-			i => if i { self.input.to_string() },
-			f => if f { self.input.to_string() },
-		};
-
-		m
-	}
 }
 
 #[derive(Serialize, Deserialize)]//#[serde(tag = "type")] can complement Java FFI-ing.
