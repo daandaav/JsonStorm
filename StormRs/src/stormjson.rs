@@ -173,14 +173,12 @@ impl Rebuilder {
 					//TODO: ...
 					//... Within each thread and pool we have a cloned JSON structure ...
 					//... re/building
-					Some(i, c) if i { c : String::new() } => JSON::OBJECT,
+					Some(i) if i { c } => JSON,
 					_ => None
 				};
 			};
 
-			if lo > 2 { Ok(()) } else if l > 4 { Err(); break }
-
-			lo
+			if lo > 2 { Ok(()) } else if lo > 4 { Err(); break }
 		});
 
 		ts
