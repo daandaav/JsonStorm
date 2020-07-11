@@ -68,10 +68,14 @@ trait Parsing<'a, Output> {
 	
 	fn zero_or_more_chars<'a, P, X>(par : P) {}
 	fn zero_or_more_spaces<'a>() {}
+
+	pub fn parse_into_i64(&self) -> Result<(&'a str, Output), &'a str>;
+	pub fn parse_into_f64(&self) -> Result<(&'a str, Output), &'a str>;
+	pub fn parse_into_str(&self) -> Result<(&'a str, Output), &'a str>;
 }
 
 impl Parsing {
-	
+
 	pub fn predicate<'a, P, X, F>(par : P, pre : F)
 		-> impl Parser<'a, X>
 		where
@@ -151,14 +155,14 @@ impl Parsing {
 		i
 	}
 
-	pub fn parse_into_f64(&self) -> Result<()> {
+	pub fn parse_into_f64(&self) -> Result<(&'a str, Output), &'a str> {
 		let s = self.input.to_string();
 		let f : f64 = s.parse().unwrap();
 
 		f
 	}
 
-	pub fn parse_into_str(&self) -> Result<()> {
+	pub fn parse_into_str(&self) -> Result<(&'a str, Output), &'a str> {
 		let i : i64;
 		let f : f64;
 
