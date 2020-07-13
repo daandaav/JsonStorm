@@ -36,14 +36,6 @@ pub enum JSON {
 	NULL,
 }
 
-struct Parsing {
-	input : String,
-}
-
-impl Parsing {
-
-}
-
 #[derive(Serialize, Deserialize)]//#[serde(tag = "type")] can complement Java FFI-ing.
 #[serde(tag = "type")]//#[serde(untagged)] is for varying enum' properties.
 enum Message {
