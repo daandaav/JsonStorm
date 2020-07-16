@@ -10,10 +10,6 @@ pub struct Client<Message> {
 	message_value : Message,
 }
 
-pub struct Broadcast<Air> {
-	air_value : Air,
-}
-
 impl Client {
 
 	pub fn create<A, B>(&self, x : A) -> impl Fn(&self, &str) -> Result<(A, B, &str), &str> where
@@ -36,12 +32,22 @@ impl Client {
 	}
 
 	pub fn update<A, B>(&self, x : A) -> impl Fn(&self) -> Result<(B)> where
-																			A : Fn(&self) -> Result<(B)> {
-		// To-do: ...
-	}
+																			A : Fn(&self) -> Result<B> {}
 
 	pub fn delete<A, B, X, Y>(&self, x : A, y : B) -> impl Fn(B) -> Result<(A, X)> where
-																						B : Fn(Y) -> Result<(A, X)> {
-		// To-do: ...
+																						B : Fn(Y) -> Result<(A, X)> {}
+}
+
+pub trait Sink {
+	pub fn process<Sender, Function, Message>(snd : Sender, msg : Message) -> impl Fn(Function) -> Result<(Sender, Message)>
+																								where Sender : Fn(Function) -> Result<Message> {
+		let (snd, msg) : (&str, &str);
+		move |msg| match snd.chars().next() { Some(snd) => Ok((&snd[msg.len()..])), _ => Err((snd(i), msg)) }
 	}
+
+	pub fn help<Function>(f : Function) {}
+
+	pub fn operate<Sender, Function>(snd : Sender, Sink::help(fnc) : Function) -> Result<> { Ok((snd, fnc)) }
+
+	pub fn erron<Message>(msg : Message) -> Result<> { Err((msg)) }
 }
