@@ -4,7 +4,11 @@
 	non_snake_case,
 )]
 
-use std::prelude::v1::*;
+use std::{
+	prelude::v1::*,
+
+	rc::Rc,
+};
 
 pub struct Client<Message> {
 	message_value : Message,
@@ -39,15 +43,26 @@ impl Client {
 }
 
 pub trait Sink {
-	pub fn process<Sender, Function, Message>(snd : Sender, msg : Message) -> impl Fn(Function) -> Result<(Sender, Message)>
-																								where Sender : Fn(Function) -> Result<Message> {
-		let (snd, msg) : (&str, &str);
-		move |msg| match snd.chars().next() { Some(snd) => Ok((&snd[msg.len()..])), _ => Err((snd(i), msg)) }
+	pub fn process<Source, Function, Message>(_src : Source, msg : Message) -> impl Fn(Function) -> Result<(Source, Message)> where
+																																Source : Fn(Function) -> Result<Message> {
+		let (_src, msg) : (&str, &str);
+		move |msg| match _src.chars().next() { Some(_src) => Ok((&_src[msg.len()..])), _ => Err((_src(i), msg)) }
 	}
 
-	pub fn help<Function>(f : Function) {}
+	pub fn handle<Source, Message, Function>(_fn : Function, _src : Rc) -> impl Fn(Function) -> Result<Source, Message> where
+																															Source : Fn(Function) -> Result<Message> {
+		let _src : Source; let msg : Message; let _src = Rc<Source> { Sink::process(_src, msg) };
+	}
 
-	pub fn operate<Sender, Function>(snd : Sender, Sink::help(fnc) : Function) -> Result<> { Ok((snd, fnc)) }
+	pub fn help<Function>(f : Function,) {}
+
+	pub fn operate<Source, Function>(_src : Source, Sink::help(fnc) : Function) -> Result<> { Ok((_src, fnc)) }
 
 	pub fn erron<Message>(msg : Message) -> Result<> { Err((msg)) }
+}
+
+pub trait Transform {
+	pub fn handle<>() {}
+
+	pub fn process<>() {}
 }
